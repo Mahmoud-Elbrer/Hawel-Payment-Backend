@@ -1,0 +1,316 @@
+services:
+
+  # ==========================
+  # DATABASES
+  # ==========================
+
+  identity-db:
+    container_name: identity-db
+    image: mysql:8.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: identity_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - identity_mysql_data:/var/lib/mysql
+    networks:
+      - hawel-network
+
+
+  wallet-db:
+    container_name: wallet-db
+    image: mysql:8.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: wallet_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - wallet_mysql_data:/var/lib/mysql
+    networks:
+      - hawel-network
+
+
+  transaction-db:
+    container_name: transaction-db
+    image: mysql:8.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: transaction_db
+    ports:
+      - "3308:3306"
+    volumes:
+      - transaction_mysql_data:/var/lib/mysql
+    networks:
+      - hawel-network
+
+
+
+  # ==========================
+  # REDIS
+  # ==========================
+
+  redis:
+    container_name: redis
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - hawel-network
+
+
+
+  # ==========================
+  # KAFKA
+  # ==========================
+
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:7.6.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    networks:
+      - hawel-network
+
+
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:7.6.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT:
+        zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS:
+        PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - hawel-network
+
+
+  ##  services ##
+
+  # ==========================
+  # EUREKA SERVER
+  # ==========================
+
+  service-registry:
+    build:
+      context: ./service-registry
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - hawel-network
+
+
+
+
+  # ==========================
+  # CONFIG SERVER
+  # ==========================
+
+  config-server:
+    build:
+      context: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    restart: always
+    networks:
+      - hawel-network
+
+
+
+  # ==========================
+  # API GATEWAY SERVICE
+  # ==========================
+
+  apt-gateway:
+    build:
+      context: ./apt-gateway
+    container_name: apt-gateway
+    ports:
+      - "8081:8080"
+    depends_on:
+      - service-registry
+      - config-server
+    environment:
+      EUREKA_SERVER:
+        http://eureka-server:8761/eureka/
+    restart: always
+    networks:
+      - hawel-network
+
+
+
+  # ==========================
+  # IDENTITY SERVICE
+  # ==========================
+
+  identity-service:
+    build:
+      context: ./identity-service
+    container_name: identity-service
+    ports:
+      - "8081:8080"
+    depends_on:
+      - identity-db
+      - service-registry
+      - config-server
+    environment:
+      DB_HOST: identity-db
+      EUREKA_SERVER:
+        http://eureka-server:8761/eureka/
+    restart: always
+    networks:
+      - hawel-network
+
+
+
+
+  # ==========================
+  # WALLET SERVICE
+  # ==========================
+
+  wallet-service:
+    build:
+      context: ./wallet-service
+    container_name: wallet-service
+    ports:
+      - "8082:8080"
+    depends_on:
+      - wallet-db
+      - service-registry
+    environment:
+      DB_HOST: wallet-db
+      EUREKA_SERVER:
+        http://eureka-server:8761/eureka/
+    restart: always
+    networks:
+      - hawel-network
+
+
+
+
+  # ==========================
+  # TRANSACTION SERVICE
+  # ==========================
+
+  transaction-service:
+    build:
+      context: ./transaction-service
+    container_name: transaction-service
+    ports:
+      - "8083:8080"
+    depends_on:
+      - transaction-db
+      - kafka
+      - service-registry
+    environment:
+      DB_HOST:
+        transaction-db
+      KAFKA_HOST:
+        kafka:9092
+      EUREKA_SERVER:
+        http://eureka-server:8761/eureka/
+    restart: always
+    networks:
+      - hawel-network
+
+
+
+
+  # ==========================
+  # PAYMENT SERVICE
+  # ==========================
+
+
+  payment-service:
+    build:
+      context: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8084:8080"
+    depends_on:
+      - kafka
+      - service-registry
+    environment:
+      KAFKA_HOST:
+        kafka:9092
+      EUREKA_SERVER:
+        http://eureka-server:8761/eureka/
+    restart: always
+    networks:
+      - hawel-network
+
+
+
+
+  # ==========================
+  # API GATEWAY
+  # ==========================
+
+
+  gateway:
+    build:
+      context: ./gateway
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - service-registry
+      - identity-service
+      - wallet-service
+      - payment-service
+    environment:
+      EUREKA_SERVER:
+        http://eureka-server:8761/eureka/
+    restart:
+      always
+    networks:
+      - hawel-network
+
+
+
+# ==========================
+# STORAGE
+# ==========================
+
+
+volumes:
+
+  identity_mysql_data:
+
+  wallet_mysql_data:
+
+  transaction_mysql_data:
+
+
+
+# ==========================
+# NETWORK
+# ==========================
+
+
+networks:
+
+  hawel-network:
+
+    driver: bridge

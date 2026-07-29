@@ -1,0 +1,44 @@
+# Eureka Config
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# API Gateway Config
+server:
+  port: 7777
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+# Gateway Routes
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: NEWS-FETCHER-SERVICE
+          uri: lb://NEWS-FETCHER-SERVICE
+          predicates:
+            - Path=/api/fetcher/**
+
+        - id: NEWS-PERSISTENCE-SERVICE
+          uri: lb://NEWS-PERSISTENCE-SERVICE
+          predicates:
+            - Path=/api/news/**
+
+        - id: NEWS-URL-SHORTENER-SERVICE
+          uri: lb://NEWS-URL-SHORTENER-SERVICE
+          predicates:
+            - Path=/api/url/shortener/**
+
+        - id: NEWS-SEARCH-SERVICE
+          uri: lb://NEWS-SEARCH-SERVICE
+          predicates:
+            - Path=/api/search/**
+        - id: NEWS-QUEUE-SERVICE
+          uri: lb://NEWS-QUEUE-SERVICE
+          predicates:
+            - Path=/api/queue/**
