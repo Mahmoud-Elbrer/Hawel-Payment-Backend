@@ -2,6 +2,7 @@ package com.hawel.wallet_service.event.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hawel.common_service.event.JournalCompletedEvent;
+import com.hawel.common_service.event.WalletBalanceUpdate;
 import com.hawel.wallet_service.entity.ProcessedEvent;
 import com.hawel.wallet_service.repository.ProcessedEventRepository;
 import com.hawel.wallet_service.service.WalletBalanceService;
@@ -30,13 +31,7 @@ public class JournalCompletedListener {
         try {
             JournalCompletedEvent event = objectMapper.readValue(payload, JournalCompletedEvent.class);
 
-            log.info(
-                    "Received JournalCompletedEvent: eventId={}, transactionId={}, journalId={}, walletId={}",
-                    event.getEventId(),
-                    event.getTransactionId(),
-                    event.getJournalId(),
-                    event.getWalletId()
-            );
+            log.info("Received JournalCompletedEvent: eventId={}, transactionId={}, journalId={} ", event.getEventId(), event.getTransactionId(), event.getJournalId());
 
             // handle Idempotency event
             if (processedEventRepository.existsByEventId(event.getEventId())) {
@@ -54,13 +49,24 @@ public class JournalCompletedListener {
                 return;
             }
 
-            // update wallet balance
-            walletBalanceService.syncBalanceFromLedger(event.getWalletId(), event.getAvailableBalance(), event.getBlockedBalance());
+            // Update all wallet balances affected by this journal
+            for (WalletBalanceUpdate walletBalance : event.getWalletBalances()) {
+
+                log.info("Syncing wallet balance: walletId={}, availableBalance={}, blockedBalance={}", walletBalance.getWalletId(), walletBalance.getAvailableBalance(), walletBalance.getBlockedBalance());
+
+                // why for loop? because a journal can have multiple postings affecting different wallets like transfer , so we need to update the balance for each affected wallet
+                walletBalanceService.syncBalanceFromLedger(walletBalance.getWalletId(), walletBalance.getAvailableBalance(), walletBalance.getBlockedBalance());
+
+                log.info("JournalCompletedEvent processed successfully: eventId={}, walletId={}", event.getEventId(), walletBalance.getWalletId());
+
+            }
 
             // save or Mark event as processed
             processedEventRepository.save(ProcessedEvent.builder().eventId(event.getEventId()).eventType("JOURNAL_COMPLETED").build());
 
-            log.info("JournalCompletedEvent processed successfully: eventId={}, walletId={}", event.getEventId(), event.getWalletId());
+
+            log.info("JournalCompletedEvent processed successfully: eventId={}", event.getEventId());
+
 
         } catch (Exception ex) {
 

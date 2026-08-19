@@ -40,12 +40,14 @@ public class LedgerServiceImpl implements LedgerService {
 
         List<LedgerPosting> postings = Arrays.asList(
 
+                // Create a debit posting for the fromAccountId
                 LedgerPostingFactory.debit(
                         request.getFromAccountId(),
                         request.getAmount(),
                         request.getCurrency()
                 ),
 
+                // Create a credit posting for the toAccountId
                 LedgerPostingFactory.credit(
                         request.getToAccountId(),
                         request.getAmount(),
@@ -125,6 +127,13 @@ public class LedgerServiceImpl implements LedgerService {
     @Transactional
     public JournalResponse withdraw(WithdrawalJournalRequest request) {
 
+        log.info("Starting withdrawal: transactionId={}, reference={}, accountId={}, amount={}, currency={}", request.getTransactionId(), request.getReference(), request.getAccountId(), request.getAmount(), request.getCurrency());
+
+        UUID cashAccount = systemAccountService.getCashAccountId(request.getCurrency());
+
+        log.debug("Resolved system cash account: currency={}, cashAccountId={}", request.getCurrency(), cashAccount);
+
+
         List<LedgerPosting> postings = Arrays.asList(
 
                 LedgerPostingFactory.debit(
@@ -134,10 +143,18 @@ public class LedgerServiceImpl implements LedgerService {
                 ),
 
                 LedgerPostingFactory.credit(
-                        systemAccountService.getCashAccountId(request.getCurrency()),
+                        cashAccount,
                         request.getAmount(),
                         request.getCurrency()
                 )
+        );
+
+        log.debug(
+                "Created withdrawal postings: debitAccount={}, creditAccount={}, amount={}, currency={}",
+                request.getAccountId(),
+                cashAccount,
+                request.getAmount(),
+                request.getCurrency()
         );
 
         JournalEntry journal = ledgerEngine.postJournal(
@@ -146,6 +163,16 @@ public class LedgerServiceImpl implements LedgerService {
                 request.getReference(),
                 request.getDescription(),
                 postings
+        );
+
+        log.info(
+                "Withdrawal journal posted successfully: journalId={}, transactionId={}, reference={}, accountId={}, amount={}, currency={}",
+                journal.getId(),
+                request.getTransactionId(),
+                request.getReference(),
+                request.getAccountId(),
+                request.getAmount(),
+                request.getCurrency()
         );
 
         return journalMapper.toResponse(journal);

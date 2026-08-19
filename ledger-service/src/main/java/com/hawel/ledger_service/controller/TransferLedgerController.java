@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/api/v1/ledger")
+@RequestMapping("/v1/ledger")
 @RequiredArgsConstructor
 public class TransferLedgerController {
 

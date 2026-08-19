@@ -3,6 +3,7 @@ package com.hawel.ledger_service.service;
 
 import com.hawel.common_service.enums.CurrencyCode;
 import com.hawel.common_service.event.JournalCompletedEvent;
+import com.hawel.common_service.event.WalletBalanceUpdate;
 import com.hawel.ledger_service.domain.LedgerPosting;
 import com.hawel.ledger_service.entity.*;
 import com.hawel.ledger_service.enums.AccountStatus;
@@ -78,6 +79,8 @@ public class LedgerEngine {
         createJournalCompletedOutboxEvent(journal, postings, accounts, balances);
 
         log.info("Journal posted successfully: journalId={}, journalNumber={}, reference={}", journal.getId(), journal.getJournalNumber(), journal.getReference());
+
+        // todo : you can make cache redis for balance and update it
 
         return journal;
     }
@@ -457,32 +460,18 @@ public class LedgerEngine {
 
         CurrencyCode currency = postings.get(0).getCurrency();
 
-        // to get wallet id
-        UUID walletId = resolveWalletId(postings, accounts);
-
-        // to get wallet balance
-        UUID walletAccountId = resolveWalletAccountId(postings, accounts, walletId);
-
-        Balance walletBalance = balances.get(walletAccountId);
-
-        if (walletBalance == null) {
-            throw new LedgerException(
-                    "BalanceNotFoundException",
-                    "Balance Not Found  for accountId = {}" + walletAccountId
-            );
-        }
+        // Get the wallet balances for all accounts involved in the postings
+        List<WalletBalanceUpdate> walletBalances = resolveWalletBalances(postings, accounts, balances);
 
         JournalCompletedEvent event = new JournalCompletedEvent(
                 journal.getTransactionId(),
                 journal.getId(),
-                walletId,
                 journal.getJournalNumber(),
                 journal.getReference(),
                 journal.getType().name(),
                 currency,
                 amount,
-                walletBalance.getAvailableBalance(),
-                walletBalance.getBlockedBalance(),
+                walletBalances,
                 journal.getStatus().name()
         );
 
@@ -492,41 +481,40 @@ public class LedgerEngine {
 
     }
 
-    private UUID resolveWalletId(List<LedgerPosting> postings, Map<UUID, Account> accounts) {
 
-        for (LedgerPosting posting : postings) {
-
-            Account account = accounts.get(posting.getAccountId());
-
-            if (account == null) {
-                continue;
-            }
-
-            if ("WALLET".equals(account.getOwnerType().name())) {
-
-                return account.getOwnerId();
-            }
-        }
-
-        return null;
-    }
-
-
-    private UUID resolveWalletAccountId(List<LedgerPosting> postings, Map<UUID, Account> accounts, UUID walletId) {
+    private List<WalletBalanceUpdate> resolveWalletBalances(List<LedgerPosting> postings, Map<UUID, Account> accounts, Map<UUID, Balance> balances) {
         return postings.stream()
                 .map(LedgerPosting::getAccountId)
-                .filter(accountId -> {
+                .distinct()
+                .map(accountId -> {
+
                     Account account = accounts.get(accountId);
 
-                    return account != null
-                            && "WALLET".equals(account.getOwnerType().name())
-                            && walletId.equals(account.getOwnerId());
+                    if (account == null) {
+                        return null;
+                    }
+
+                    if (!"WALLET".equals(account.getOwnerType().name())) {
+                        return null;
+                    }
+
+                    Balance balance = balances.get(accountId);
+
+                    if (balance == null) {
+                        throw new LedgerException(
+                                "BALANCE_NOT_FOUND",
+                                "Balance not found for account: " + accountId
+                        );
+                    }
+
+                    return new WalletBalanceUpdate(
+                            account.getOwnerId(),
+                            balance.getAvailableBalance(),
+                            balance.getBlockedBalance()
+                    );
                 })
-                .findFirst()
-                .orElseThrow(() -> new LedgerException(
-                        "WALLET_ACCOUNT_NOT_FOUND",
-                        "Unable to find wallet account for wallet: " + walletId
-                ));
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
 
