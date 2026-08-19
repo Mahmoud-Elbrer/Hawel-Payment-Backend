@@ -1,4 +1,4 @@
-package com.hawel.ledger_service.dto.response;
+package com.hawel.ledger_service.dto;
 
 import com.hawel.ledger_service.enums.EntryType;
 import com.hawel.ledger_service.enums.JournalType;

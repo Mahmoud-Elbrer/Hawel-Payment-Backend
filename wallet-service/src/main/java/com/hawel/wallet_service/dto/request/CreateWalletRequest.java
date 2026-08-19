@@ -1,7 +1,7 @@
 package com.hawel.wallet_service.dto.request;
 
-import com.hawel.wallet_service.enums.Currency;
-import com.hawel.wallet_service.enums.WalletType;
+import com.hawel.common_service.enums.CurrencyCode;
+import com.hawel.common_service.enums.WalletType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,8 +19,8 @@ public class CreateWalletRequest {
         @NotNull(message = "Customer ID is required")
         private UUID customerId;
 
-        @NotNull(message = "Currency is required")
-        private Currency currency;
+        @NotNull(message = "CurrencyCode is required")
+        private CurrencyCode currencyCode;
 
         @NotNull(message = "Wallet type is required")
         private WalletType walletType;

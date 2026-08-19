@@ -1,6 +1,7 @@
 package com.hawel.wallet_service.event;
 
 
+import com.hawel.common_service.event.BaseEvent;
 import lombok.Getter;
 
 import java.util.UUID;

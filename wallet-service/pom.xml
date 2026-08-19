@@ -118,6 +118,22 @@
 		</dependency>
 
 
+		<!--		common-service-->
+		<dependency>
+			<groupId>com.hawel</groupId>
+			<artifactId>common-service</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+
+		<!--		common-service-->
+		<dependency>
+			<groupId>com.hawel</groupId>
+			<artifactId>common-service</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>

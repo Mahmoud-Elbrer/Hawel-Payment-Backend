@@ -1,4 +1,4 @@
-package com.hawel.wallet_service.dto;
+package com.hawel.ledger_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.hawel.wallet_service.event;
+package com.hawel.ledger_service.event;
 
 import lombok.Getter;
 

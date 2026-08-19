@@ -1,5 +1,6 @@
 package com.hawel.wallet_service.service.impl;
 
+import com.hawel.common_service.event.WalletCreatedEvent;
 import com.hawel.wallet_service.config.WalletDefaultConfig;
 import com.hawel.wallet_service.dto.request.CreateWalletRequest;
 import com.hawel.wallet_service.dto.request.FreezeWalletRequest;
@@ -80,7 +81,7 @@ public class WalletServiceImpl implements WalletService {
         Wallet wallet = Wallet.builder()
                 .walletNumber(walletNumber)
                 .customerId(request.getCustomerId())
-                .currency(request.getCurrency())
+                .currencyCode(request.getCurrencyCode())
                 .walletType(request.getWalletType())
                 .status(WalletStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
@@ -129,7 +130,7 @@ public class WalletServiceImpl implements WalletService {
                         savedWallet.getId(),
                         savedWallet.getCustomerId(),
                         savedWallet.getWalletNumber(),
-                        savedWallet.getCurrency(),
+                        savedWallet.getCurrencyCode(),
                         savedWallet.getWalletType()
                 )
         );

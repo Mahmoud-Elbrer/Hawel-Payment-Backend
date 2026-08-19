@@ -1,4 +1,4 @@
-package com.hawel.wallet_service.event;
+package com.hawel.common_service.event;
 
 import lombok.Getter;
 
@@ -9,14 +9,14 @@ import java.util.UUID;
 public abstract class BaseEvent {
 
     private final UUID eventId;
-
     private final LocalDateTime createdAt;
 
-
     protected BaseEvent() {
+        this(UUID.randomUUID(), LocalDateTime.now());
+    }
 
-        this.eventId = UUID.randomUUID();
-        this.createdAt = LocalDateTime.now();
-
+    protected BaseEvent(UUID eventId, LocalDateTime createdAt) {
+        this.eventId = eventId;
+        this.createdAt = createdAt;
     }
 }

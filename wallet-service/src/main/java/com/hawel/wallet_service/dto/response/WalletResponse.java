@@ -1,8 +1,8 @@
 package com.hawel.wallet_service.dto.response;
 
-import com.hawel.wallet_service.enums.Currency;
+import com.hawel.common_service.enums.CurrencyCode;
+import com.hawel.common_service.enums.WalletType;
 import com.hawel.wallet_service.enums.WalletStatus;
-import com.hawel.wallet_service.enums.WalletType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +23,7 @@ public class WalletResponse {
 
     private UUID customerId;
 
-    private Currency currency;
+    private CurrencyCode currencyCode;
 
     private WalletType walletType;
 

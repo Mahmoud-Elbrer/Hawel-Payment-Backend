@@ -4,7 +4,7 @@ spring:
 
   datasource:
     # Local development
-    url: jdbc:mysql://localhost:3306/identity_db
+    url: jdbc:mysql://localhost:3306/identity_db?createDatabaseIfNotExist=true
 
     # Docker Compose
     # url: jdbc:mysql://mysqldb:3306/blognewdb?createDatabaseIfNotExist=true
@@ -18,6 +18,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
 
   kafka:
     bootstrap-servers: localhost:9092

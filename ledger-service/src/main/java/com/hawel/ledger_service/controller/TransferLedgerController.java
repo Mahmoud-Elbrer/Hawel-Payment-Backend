@@ -1,2 +1,30 @@
-package com.hawel.ledger_service.controller;public class TransferLedgerController {
+package com.hawel.ledger_service.controller;
+
+import com.hawel.ledger_service.dto.request.TransferJournalRequest;
+import com.hawel.ledger_service.dto.response.JournalResponse;
+import com.hawel.ledger_service.service.LedgerService;
+
+import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+
+@RestController
+@RequestMapping("/api/v1/ledger")
+@RequiredArgsConstructor
+public class TransferLedgerController {
+
+
+    private final LedgerService ledgerService;
+
+    @PostMapping("/transfer")
+    public ResponseEntity<JournalResponse> transfer(@Valid @RequestBody TransferJournalRequest request) {
+
+        return ResponseEntity.ok(ledgerService.transfer(request));
+
+    }
+
 }

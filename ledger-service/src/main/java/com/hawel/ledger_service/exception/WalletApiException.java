@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Getter
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class LedgerException extends RuntimeException{
+public class WalletApiException extends RuntimeException{
     private HttpStatus status ;
     private String message  ;
 
-    public LedgerException(HttpStatus status, String message) {
+    public WalletApiException(HttpStatus status, String message) {
         this.status = status;
         this.message = message;
     }

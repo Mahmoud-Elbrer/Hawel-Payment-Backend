@@ -7,7 +7,6 @@ import lombok.Getter;
 @Getter
 public class LedgerException extends RuntimeException {
 
-
     private final String code;
 
 

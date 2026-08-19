@@ -1,4 +1,4 @@
-package com.hawel.wallet_service.kafka;
+package com.hawel.ledger_service.kafka;
 
 public final class KafkaTopics {
 

@@ -1,4 +1,4 @@
-package com.hawel.wallet_service.exception;
+package com.hawel.ledger_service.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

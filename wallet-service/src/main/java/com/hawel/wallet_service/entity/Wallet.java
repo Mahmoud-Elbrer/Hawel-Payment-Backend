@@ -1,8 +1,8 @@
 package com.hawel.wallet_service.entity;
 
-import com.hawel.wallet_service.enums.Currency;
+import com.hawel.common_service.enums.CurrencyCode;
+import com.hawel.common_service.enums.WalletType;
 import com.hawel.wallet_service.enums.WalletStatus;
-import com.hawel.wallet_service.enums.WalletType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -35,7 +35,7 @@ public class Wallet {
 
 
     @Enumerated(EnumType.STRING)
-    private Currency currency = Currency.SDG;
+    private CurrencyCode currencyCode = CurrencyCode.SDG;
 
 
     @Enumerated(EnumType.STRING)

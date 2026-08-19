@@ -1,6 +1,7 @@
 package com.hawel.wallet_service.event.impl;
 
 
+import com.hawel.common_service.event.WalletCreatedEvent;
 import com.hawel.wallet_service.event.*;
 import com.hawel.wallet_service.kafka.KafkaTopics;
 import lombok.RequiredArgsConstructor;

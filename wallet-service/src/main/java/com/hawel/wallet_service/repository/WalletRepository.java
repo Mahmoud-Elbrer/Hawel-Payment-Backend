@@ -1,7 +1,7 @@
 package com.hawel.wallet_service.repository;
 
+import com.hawel.common_service.enums.WalletType;
 import com.hawel.wallet_service.entity.Wallet;
-import com.hawel.wallet_service.enums.WalletType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

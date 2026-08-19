@@ -1,8 +1,9 @@
-package com.hawel.wallet_service.enums;
+package com.hawel.common_service.enums;
 
 public enum WalletType {
 
     PERSONAL,
 
-    TAJER
+    TAJER ,
+    MERCHANT
 }

@@ -15,7 +15,7 @@ public interface WalletMapper {
     @Mapping(source = "wallet.id", target = "id")
     @Mapping(source = "wallet.walletNumber", target = "walletNumber")
     @Mapping(source = "wallet.customerId", target = "customerId")
-    @Mapping(source = "wallet.currency", target = "currency")
+    @Mapping(source = "wallet.currencyCode", target = "currencyCode")
     @Mapping(source = "wallet.walletType", target = "walletType")
     @Mapping(source = "wallet.status", target = "status")
     @Mapping(source = "wallet.createdAt", target = "createdAt")
