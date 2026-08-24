@@ -39,7 +39,7 @@ public class AccountServiceImpl implements AccountService {
                 .ownerId(event.getWalletId())
                 .ownerType(OwnerType.WALLET)
                 .accountType(accountType)
-                .currency(event.getCurrencyCode())
+                .currencyCode(event.getCurrencyCode())
                 .status(AccountStatus.ACTIVE)
                 .build();
 

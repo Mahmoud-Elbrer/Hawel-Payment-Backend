@@ -28,7 +28,7 @@ public class StatementItemResponse {
 
     private BigDecimal amount;
 
-    private CurrencyCode currency;
+    private CurrencyCode currencyCode;
 
     private Instant createdAt;
 }

@@ -1,4 +1,4 @@
-package com.hawel.common_service.dto.wallet.dto;
+package com.hawel.common_service.dto.wallet;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +15,4 @@ public class WalletTransferValidationResponse {
 
     private String reason;
 
-    private UUID senderAccountId;
-
-    private UUID receiverAccountId;
 }

@@ -1,18 +1,19 @@
 package com.hawel.transaction_service.client.wallet;
 
-import com.hawel.transaction_service.client.wallet.dto.WalletTransferValidationRequest;
-import com.hawel.transaction_service.client.wallet.dto.WalletTransferValidationResponse;
+
+import com.hawel.common_service.dto.wallet.WalletTransferValidationRequest;
+import com.hawel.common_service.dto.wallet.WalletTransferValidationResponse;
+import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(
-        name = "wallet-service"
-)
+//@FeignClient(name = "wallet-service") this with service discovery
+@FeignClient(name = "wallet-service", url = "${services.wallet.url}")
 public interface WalletClient {
 
-    @PostMapping("/internal/wallets/transfer-validation")
+    @PostMapping("/api/internal/wallets/transfer-validation")
     WalletTransferValidationResponse validateTransfer(
-            @RequestBody WalletTransferValidationRequest request
+      @Valid @RequestBody WalletTransferValidationRequest request
     );
 }

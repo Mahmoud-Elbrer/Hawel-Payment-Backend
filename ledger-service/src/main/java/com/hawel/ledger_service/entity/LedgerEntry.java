@@ -45,7 +45,7 @@ public class LedgerEntry {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private CurrencyCode currency;
+    private CurrencyCode currencyCode;
 
     @Column(length = 300)
     private String description;

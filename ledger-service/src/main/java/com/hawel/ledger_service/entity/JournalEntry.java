@@ -1,6 +1,6 @@
 package com.hawel.ledger_service.entity;
 
-import com.hawel.ledger_service.enums.JournalStatus;
+import com.hawel.common_service.enums.JournalStatus;
 import com.hawel.ledger_service.enums.JournalType;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,10 +1,11 @@
-package com.hawel.common_service.dto.wallet.dto;
+package com.hawel.common_service.dto.ledger;
 
 import com.hawel.common_service.enums.CurrencyCode;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class TransferJournalRequest {
 
     @NotNull
@@ -33,7 +35,7 @@ public class TransferJournalRequest {
     private BigDecimal amount;
 
     @NotNull
-    private CurrencyCode currency;
+    private CurrencyCode currencyCode;
 
     private String description;
 }

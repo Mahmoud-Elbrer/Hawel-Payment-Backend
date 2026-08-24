@@ -26,11 +26,11 @@ public class SystemAccountServiceImpl implements SystemAccountService {
 
 
     @Override
-    public UUID getCashAccountId(CurrencyCode currency) {
+    public UUID getCashAccountId(CurrencyCode currencyCode) {
 
         // Find the system account for cash based on the currency and return its ID
         // can have CASH, CASH_USD, CASH_EUR, etc. depending on the currency
-        return findSystemAccount(AccountType.SYSTEM, "CASH", currency).getId();
+        return findSystemAccount(AccountType.SYSTEM, "CASH", currencyCode).getId();
 
     }
 
@@ -67,11 +67,11 @@ public class SystemAccountServiceImpl implements SystemAccountService {
     }
 
 
-    private Account findSystemAccount(AccountType type, String code, CurrencyCode currency) {
+    private Account findSystemAccount(AccountType type, String code, CurrencyCode currencyCode) {
 
-        log.info("Finding system account: type={}, code={}, currency={}", type, code, currency);
+        log.info("Finding system account: type={}, code={}, currency={}", type, code, currencyCode);
 
-        return accountRepository.findSystemAccount(type, code, currency).orElseThrow(() -> new LedgerException("LEDGER_002", "System account not found: type=" + type + ", code=" + code + ", currency=" + currency));
+        return accountRepository.findSystemAccount(type, code, currencyCode).orElseThrow(() -> new LedgerException("LEDGER_002", "System account not found: type=" + type + ", code=" + code + ", currency=" + currencyCode));
     }
 
 }

@@ -1,6 +1,6 @@
-package com.hawel.ledger_service.dto.response;
+package com.hawel.common_service.dto.ledger;
 
-import com.hawel.ledger_service.enums.JournalStatus;
+import com.hawel.common_service.enums.JournalStatus;
 import lombok.*;
 
 import java.util.UUID;

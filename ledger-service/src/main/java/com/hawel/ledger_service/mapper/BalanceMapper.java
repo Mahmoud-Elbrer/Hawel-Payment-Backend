@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 public interface BalanceMapper {
 
     @Mapping(target = "accountId", source = "account.id")
-    @Mapping(target = "currency", source = "account.currency")
+    @Mapping(target = "currencyCode", source = "account.currencyCode")
     BalanceResponse toResponse(Balance balance);
 
 }

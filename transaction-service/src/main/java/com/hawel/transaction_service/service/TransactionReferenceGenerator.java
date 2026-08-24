@@ -1,4 +1,5 @@
-package com.hawel.transaction_service.service.impl;
+package com.hawel.transaction_service.service;
 
-public class TransactionReferenceGenerator {
+public interface TransactionReferenceGenerator {
+    String generate();
 }

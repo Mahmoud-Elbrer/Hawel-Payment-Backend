@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-// warring : when make more instance of this Publisher
+// TODO : Warring : when make more instance of this Publisher
 public class OutboxPublisher {
 
     private static final String LEDGER_EVENTS_TOPIC = "ledger.events";

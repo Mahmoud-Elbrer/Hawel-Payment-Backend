@@ -2,13 +2,13 @@ package com.hawel.ledger_service.service;
 
 
 import com.hawel.common_service.enums.CurrencyCode;
+import com.hawel.common_service.enums.JournalStatus;
 import com.hawel.common_service.event.JournalCompletedEvent;
 import com.hawel.common_service.event.WalletBalanceUpdate;
 import com.hawel.ledger_service.domain.LedgerPosting;
 import com.hawel.ledger_service.entity.*;
 import com.hawel.ledger_service.enums.AccountStatus;
 import com.hawel.ledger_service.enums.EntryType;
-import com.hawel.ledger_service.enums.JournalStatus;
 import com.hawel.ledger_service.enums.JournalType;
 import com.hawel.ledger_service.exception.*;
 import com.hawel.ledger_service.repository.*;
@@ -283,13 +283,13 @@ public class LedgerEngine {
 
         for (Account account : sortedAccounts) {
 
-            log.info("Locking balance for account. accountId={}, accountNumber={}, currency={}", account.getId(), account.getAccountNumber(), account.getCurrency());
+            log.info("Locking balance for account. accountId={}, accountNumber={}, currency={}", account.getId(), account.getAccountNumber(), account.getCurrencyCode());
 
             Balance balance = balanceRepository.findByAccountIdForUpdate(account.getId()).orElseThrow(() -> {
 
-                log.error("Balance not found for account. accountId={}, currency={}", account.getId(), account.getCurrency());
+                log.error("Balance not found for account. accountId={}, currency={}", account.getId(), account.getCurrencyCode());
 
-                return new BalanceNotFoundException(account.getId(), account.getCurrency().name());
+                return new BalanceNotFoundException(account.getId(), account.getCurrencyCode().name());
             });
 
             log.info("Balance locked successfully for account. accountId={}, availableBalance={}, blockedBalance={}", account.getId(), balance.getAvailableBalance(), balance.getBlockedBalance());
@@ -329,7 +329,7 @@ public class LedgerEngine {
                             .account(account)
                             .entryType(posting.getEntryType())
                             .amount(posting.getAmount())
-                            .currency(posting.getCurrency())
+                            .currencyCode(posting.getCurrency())
                             .build();
                 }).collect(Collectors.toList());
 
@@ -424,7 +424,7 @@ public class LedgerEngine {
                 throw new AccountNotFoundException(posting.getAccountId());
             }
 
-            log.info("Account found. accountId={}, accountNumber={}, accountType={}, status={}, currency={}", account.getId(), account.getAccountNumber(), account.getAccountType(), account.getStatus(), account.getCurrency());
+            log.info("Account found. accountId={}, accountNumber={}, accountType={}, status={}, currency={}", account.getId(), account.getAccountNumber(), account.getAccountType(), account.getStatus(), account.getCurrencyCode());
 
             // Check if account is active, if not throw exception
             validateAccountStatus(account);

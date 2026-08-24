@@ -1,5 +1,8 @@
 package com.hawel.wallet_service.service;
 
+
+import com.hawel.common_service.dto.wallet.WalletTransferValidationRequest;
+import com.hawel.common_service.dto.wallet.WalletTransferValidationResponse;
 import com.hawel.wallet_service.dto.request.CreateWalletRequest;
 import com.hawel.wallet_service.dto.request.FreezeWalletRequest;
 import com.hawel.wallet_service.dto.request.UpdateWalletLimitRequest;
@@ -33,4 +36,9 @@ public interface WalletService {
     WalletLimitResponse updateLimits(UUID walletId, UpdateWalletLimitRequest request);
 
     WalletSettingsResponse updateSettings(UUID walletId, UpdateWalletSettingsRequest request);
+
+
+    // Internal method for validating wallet transfer
+    // it used by transaction service to validate transfer before processing it
+    WalletTransferValidationResponse validateTransfer(WalletTransferValidationRequest request);
 }

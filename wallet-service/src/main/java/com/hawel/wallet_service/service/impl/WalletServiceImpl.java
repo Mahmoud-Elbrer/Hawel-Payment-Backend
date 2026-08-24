@@ -1,5 +1,7 @@
 package com.hawel.wallet_service.service.impl;
 
+import com.hawel.common_service.dto.wallet.WalletTransferValidationRequest;
+import com.hawel.common_service.dto.wallet.WalletTransferValidationResponse;
 import com.hawel.common_service.event.WalletCreatedEvent;
 import com.hawel.wallet_service.config.WalletDefaultConfig;
 import com.hawel.wallet_service.dto.request.CreateWalletRequest;
@@ -121,7 +123,7 @@ public class WalletServiceImpl implements WalletService {
         log.debug("Default wallet configuration created walletId={}", savedWallet.getId());
 
         // 8. Create initial wallet balance
-       WalletBalanceResponse balance =  walletBalanceService.createInitialWalletBalance(savedWallet.getId());
+        WalletBalanceResponse balance = walletBalanceService.createInitialWalletBalance(savedWallet.getId());
 
         log.debug("Initial wallet balance created walletId={}", savedWallet.getId());
 
@@ -138,7 +140,7 @@ public class WalletServiceImpl implements WalletService {
         log.info("WalletCreatedEvent published walletId={}", savedWallet.getId());
 
         // 9. Return response
-        return walletMapper.toResponse(savedWallet, limits, settings , balance);
+        return walletMapper.toResponse(savedWallet, limits, settings, balance);
 
 
     }
@@ -190,7 +192,7 @@ public class WalletServiceImpl implements WalletService {
 
                     WalletBalanceResponse balance = walletBalanceService.getBalance(wallet.getId());
 
-                    return walletMapper.toResponse(wallet, walletLimit, walletSettings , balance);
+                    return walletMapper.toResponse(wallet, walletLimit, walletSettings, balance);
 
                 })
                 .collect(Collectors.toList());
@@ -267,7 +269,6 @@ public class WalletServiceImpl implements WalletService {
 
             return buildResponse(wallet);
         }
-
 
 
         wallet.setStatus(WalletStatus.FROZEN);
@@ -378,7 +379,7 @@ public class WalletServiceImpl implements WalletService {
 
         // 5. Publish event
         // TODO : make "reason" dynamic based on the actual reason for suspension, currently hardcoded
-        eventPublisher.publish(new WalletSuspendedEvent(savedWallet.getId() , "reason") );
+        eventPublisher.publish(new WalletSuspendedEvent(savedWallet.getId(), "reason"));
 
         return buildResponse(savedWallet);
     }
@@ -572,6 +573,26 @@ public class WalletServiceImpl implements WalletService {
         return walletMapper.toSettingsResponse(savedSettings);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public WalletTransferValidationResponse validateTransfer(WalletTransferValidationRequest request) {
+
+        log.info("Validating wallet transfer from senderWalletId={} to receiverWalletId={} amount={} currency={}", request.getSenderWalletId(), request.getReceiverWalletId(), request.getAmount(), request.getCurrencyCode());
+
+        // 1. Find sender wallet
+        // 2. Find receiver wallet
+        // 3. Check wallets exist
+        // 4. Check wallets are active
+        // 5. Check sender is not receiver
+        // 6. Check currency
+        // 7. Check sender balance
+        // 8. Check transfer limits
+        // 9. Return validation result
+
+        return new WalletTransferValidationResponse(true, null);
+
+    }
+
 
     // Get Wallet by ID and throw exception if not found
     private Wallet getWallet(UUID walletId) {
@@ -598,12 +619,13 @@ public class WalletServiceImpl implements WalletService {
         WalletBalanceResponse balance = walletBalanceService.getBalance(wallet.getId());
 
         // Build Response
-        return walletMapper.toResponse(wallet, walletLimit, walletSettings , balance);
+        return walletMapper.toResponse(wallet, walletLimit, walletSettings, balance);
 
     }
 
 
     // Save Wallet Status History
+    // TODO : change null to the userId of the user who changed the status ,by admin or customer
     private void saveStatusHistory(Wallet wallet, WalletStatus oldStatus, WalletStatus newStatus, String reason, UUID changedBy) {
 
         WalletStatusHistory history = WalletStatusHistory.builder()
@@ -616,29 +638,6 @@ public class WalletServiceImpl implements WalletService {
                 .build();
 
         walletStatusHistoryRepository.save(history);
-    }
-
-
-    private Wallet changeWalletStatus(UUID walletId, WalletStatus newStatus, String reason) {
-
-
-        Wallet wallet = getWallet(walletId);
-
-        WalletStatus oldStatus = wallet.getStatus();
-
-        log.info("Changing wallet status walletId={}, oldStatus={}, newStatus={}", walletId, oldStatus, newStatus);
-
-        wallet.setStatus(newStatus);
-
-        Wallet updatedWallet = walletRepository.save(wallet);
-
-        // TODO : change null to the userId of the user who changed the status ,by admin or customer
-        saveStatusHistory(updatedWallet, oldStatus, newStatus, reason, null);
-
-        log.info("Wallet status changed successfully walletId={}", walletId);
-
-        return updatedWallet;
-
     }
 
 

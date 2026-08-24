@@ -33,8 +33,8 @@ public class Wallet {
 
     private UUID customerId;
 
-
     @Enumerated(EnumType.STRING)
+    @Column(name = "currency_code", nullable = false, length = 10)
     private CurrencyCode currencyCode = CurrencyCode.SDG;
 
 

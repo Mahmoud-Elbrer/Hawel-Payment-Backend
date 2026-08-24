@@ -1,4 +1,4 @@
-package com.hawel.common_service.dto.wallet.dto;
+package com.hawel.common_service.dto.wallet;
 
 import com.hawel.common_service.enums.CurrencyCode;
 import jakarta.validation.constraints.DecimalMin;

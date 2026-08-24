@@ -20,7 +20,7 @@ public class BalanceResponse {
 
     private BigDecimal blockedBalance;
 
-    private CurrencyCode currency;
+    private CurrencyCode currencyCode;
 
     private Instant updatedAt;
 }

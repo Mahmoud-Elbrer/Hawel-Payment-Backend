@@ -71,9 +71,13 @@ public class Account {
     private AccountType accountType;
 
 
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false, length = 10)
+//    private CurrencyCode currency;
+
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 10)
-    private CurrencyCode currency;
+    @Column(name = "currency_code", nullable = false, length = 10)
+    private CurrencyCode currencyCode = CurrencyCode.SDG;
 
 
     @Enumerated(EnumType.STRING)

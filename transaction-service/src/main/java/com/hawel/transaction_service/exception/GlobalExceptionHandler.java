@@ -1,4 +1,4 @@
-package com.hawel.ledger_service.exception;
+package com.hawel.transaction_service.exception;
 
 
 import lombok.AllArgsConstructor;
@@ -17,17 +17,17 @@ import org.springframework.web.bind.annotation.*;
 public class GlobalExceptionHandler {
 
 
-    @ExceptionHandler(LedgerException.class)
-    public ResponseEntity<ErrorResponse> handleLedgerException(LedgerException ex) {
+    @ExceptionHandler(TransactionException.class)
+    public ResponseEntity<ErrorResponse> handleLedgerException(TransactionException ex) {
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(
-                        new ErrorResponse(
-                                ex.getCode(),
-                                ex.getMessage()
-                        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("TRANSACTION_ERROR", ex.getMessage()));
+    }
 
-                );
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ErrorResponse> handleLedgerException(IdempotencyConflictException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("IDEMPOTENCY_CONFLICT", ex.getMessage()));
     }
 
 
@@ -36,16 +36,7 @@ public class GlobalExceptionHandler {
 
         log.error("Unexpected error occurred", ex);
 
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(
-
-                        new ErrorResponse(
-                                "SYSTEM_ERROR",
-                                "Unexpected error"
-                        )
-
-                );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("SYSTEM_ERROR", "Unexpected error"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

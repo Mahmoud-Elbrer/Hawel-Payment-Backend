@@ -1,7 +1,7 @@
 package com.hawel.ledger_service.controller;
 
-import com.hawel.ledger_service.dto.request.TransferJournalRequest;
-import com.hawel.ledger_service.dto.response.JournalResponse;
+import com.hawel.common_service.dto.ledger.JournalResponse;
+import com.hawel.common_service.dto.ledger.TransferJournalRequest;
 import com.hawel.ledger_service.service.LedgerService;
 
 import jakarta.validation.Valid;

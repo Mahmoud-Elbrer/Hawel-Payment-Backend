@@ -1,6 +1,6 @@
 package com.hawel.ledger_service.mapper;
 
-import com.hawel.ledger_service.dto.response.JournalResponse;
+import com.hawel.common_service.dto.ledger.JournalResponse;
 import com.hawel.ledger_service.entity.JournalEntry;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

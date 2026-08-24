@@ -18,7 +18,7 @@ public class JournalCompletedEvent extends BaseEvent {
     private final String journalNumber;
     private final String reference;
     private final String journalType;
-    private final CurrencyCode currency;
+    private final CurrencyCode currencyCode;
     private final BigDecimal amount;
     private List<WalletBalanceUpdate> walletBalances;
     private final String status;
@@ -30,7 +30,7 @@ public class JournalCompletedEvent extends BaseEvent {
             String journalNumber,
             String reference,
             String journalType,
-            CurrencyCode currency,
+            CurrencyCode currencyCode,
             BigDecimal amount,
             List<WalletBalanceUpdate> walletBalances ,
             String status
@@ -42,7 +42,7 @@ public class JournalCompletedEvent extends BaseEvent {
         this.journalNumber = journalNumber;
         this.reference = reference;
         this.journalType = journalType;
-        this.currency = currency;
+        this.currencyCode = currencyCode;
         this.amount = amount;
         this.walletBalances = walletBalances;
         this.status = status;
@@ -58,7 +58,7 @@ public class JournalCompletedEvent extends BaseEvent {
             @JsonProperty("journalNumber") String journalNumber,
             @JsonProperty("reference") String reference,
             @JsonProperty("journalType") String journalType,
-            @JsonProperty("currency") CurrencyCode currency,
+            @JsonProperty("currencyCode") CurrencyCode currencyCode,
             @JsonProperty("amount") BigDecimal amount,
             @JsonProperty("walletBalances") List<WalletBalanceUpdate>  walletBalances,
             @JsonProperty("status") String status
@@ -70,7 +70,7 @@ public class JournalCompletedEvent extends BaseEvent {
         this.journalNumber = journalNumber;
         this.reference = reference;
         this.journalType = journalType;
-        this.currency = currency;
+        this.currencyCode = currencyCode;
         this.amount = amount;
         this.walletBalances = walletBalances;
         this.status = status;

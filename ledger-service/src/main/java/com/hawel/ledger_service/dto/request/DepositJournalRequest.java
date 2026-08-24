@@ -30,7 +30,7 @@ public class DepositJournalRequest {
     private BigDecimal amount;
 
     @NotNull
-    private CurrencyCode currency;
+    private CurrencyCode currencyCode;
 
     private String description;
 }
