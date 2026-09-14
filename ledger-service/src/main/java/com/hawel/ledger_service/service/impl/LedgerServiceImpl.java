@@ -241,6 +241,7 @@ public class LedgerServiceImpl implements LedgerService {
         log.debug("Resolving ledger accounts for wallets | walletIds={}", request.getWalletIds());
 
 
+        // OwnerType.WALLET can be for Customer or Tajer, so ledger account don't need to know the owner type, it just needs to know the wallet id and wallet type.
         List<Account> accounts = accountRepository.findAllByOwnerIdInAndOwnerType(request.getWalletIds(), OwnerType.WALLET);
 
         log.info(
@@ -266,17 +267,10 @@ public class LedgerServiceImpl implements LedgerService {
 
                             if (account == null) {
 
-                                log.error(
-                                        "Ledger account not found | walletId={} | ownerType={}",
-                                        walletId,
-                                        OwnerType.WALLET
-                                );
+                                // OwnerType.WALLET can be for Customer or Tajer, so ledger account don't need to know the owner type, it just needs to know the wallet id and wallet type.
+                                log.error("Ledger account not found | walletId={} | ownerType={}", walletId, OwnerType.WALLET);
 
-                                log.debug(
-                                        "Ledger account resolved | walletId={} | accountId={}",
-                                        walletId,
-                                        account.getId()
-                                );
+                                log.debug("Ledger account resolved | walletId={} | accountId={}", walletId, account.getId());
 
                                 throw new ResourceNotFoundException("Ledger account not found for wallet: " + walletId);
                             }

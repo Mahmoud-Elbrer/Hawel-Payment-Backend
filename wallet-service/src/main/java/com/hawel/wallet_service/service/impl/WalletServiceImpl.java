@@ -2,6 +2,7 @@ package com.hawel.wallet_service.service.impl;
 
 import com.hawel.common_service.dto.wallet.WalletTransferValidationRequest;
 import com.hawel.common_service.dto.wallet.WalletTransferValidationResponse;
+import com.hawel.common_service.enums.WalletStatus;
 import com.hawel.common_service.event.WalletCreatedEvent;
 import com.hawel.wallet_service.config.WalletDefaultConfig;
 import com.hawel.wallet_service.dto.request.CreateWalletRequest;
@@ -16,7 +17,6 @@ import com.hawel.wallet_service.entity.Wallet;
 import com.hawel.wallet_service.entity.WalletLimit;
 import com.hawel.wallet_service.entity.WalletSettings;
 import com.hawel.wallet_service.entity.WalletStatusHistory;
-import com.hawel.wallet_service.enums.WalletStatus;
 import com.hawel.wallet_service.event.*;
 import com.hawel.wallet_service.exception.ResourceNotFoundException;
 import com.hawel.wallet_service.exception.WalletApiException;
@@ -66,10 +66,10 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public WalletResponse createWallet(CreateWalletRequest request) {
 
-        log.info("Creating wallet for customerId={}, walletType={} ", request.getCustomerId(), request.getWalletType());
+        log.info("Creating wallet for ownerId={}, walletType={} ", request.getOwnerId(), request.getWalletType());
 
         // 1. Check if customer already has wallet
-        boolean exists = walletRepository.existsByCustomerIdAndWalletType(request.getCustomerId(), request.getWalletType());
+        boolean exists = walletRepository.existsByOwnerIdAndWalletType(request.getOwnerId(), request.getWalletType());
 
         // TODO : Enable this when we want to restrict customers to have only one wallet of each type
         //        if (exists) {
@@ -82,7 +82,7 @@ public class WalletServiceImpl implements WalletService {
         // 4. Create Wallet entity
         Wallet wallet = Wallet.builder()
                 .walletNumber(walletNumber)
-                .customerId(request.getCustomerId())
+                .ownerId(request.getOwnerId())
                 .currencyCode(request.getCurrencyCode())
                 .walletType(request.getWalletType())
                 .status(WalletStatus.ACTIVE)
@@ -114,7 +114,7 @@ public class WalletServiceImpl implements WalletService {
                 .allowTransfer(true)
                 .allowCashIn(true)
                 .allowCashOut(true)
-                .allowNfc(false)
+                .allowNfc(true)
                 .allowQr(true)
                 .build();
 
@@ -127,10 +127,10 @@ public class WalletServiceImpl implements WalletService {
 
         log.debug("Initial wallet balance created walletId={}", savedWallet.getId());
 
-        // TODO : 8. Publish WalletCreated event
+        // 9. Publish WalletCreatedEvent to create account for the wallet in the ledger system and other services that need to be notified about the new wallet
         eventPublisher.publish(new WalletCreatedEvent(
                         savedWallet.getId(),
-                        savedWallet.getCustomerId(),
+                        savedWallet.getOwnerId(),
                         savedWallet.getWalletNumber(),
                         savedWallet.getCurrencyCode(),
                         savedWallet.getWalletType()
@@ -178,10 +178,10 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public List<WalletResponse> getCustomerWallets(UUID customerId) {
-        List<Wallet> wallets = walletRepository.findByCustomerId(customerId);
+    public List<WalletResponse> getOwnerWallets(UUID ownerId) {
+        List<Wallet> wallets = walletRepository.findByOwnerId(ownerId);
 
-        log.info("Fetching wallets for customerId={}, totalWallets={}", customerId, wallets.size());
+        log.info("Fetching wallets for ownerId={}, totalWallets={}", ownerId, wallets.size());
 
         return wallets.stream()
                 .map(wallet -> {

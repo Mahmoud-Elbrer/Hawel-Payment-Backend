@@ -4,11 +4,11 @@ public enum AccountType {
 
     // "هذا الحساب يستخدم في القيود المحاسبية لأي غرض؟"
 
-    CUSTOMER_WALLET,
+    CUSTOMER,
 
     TAJER,
 
-    MERCHANT,
+    // TODO : you can Merchant Here
 
     AGENT,
 

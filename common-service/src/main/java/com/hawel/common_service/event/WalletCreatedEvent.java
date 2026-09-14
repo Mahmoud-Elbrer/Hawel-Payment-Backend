@@ -13,7 +13,8 @@ import java.util.UUID;
 public class WalletCreatedEvent extends BaseEvent {
 
     private final UUID walletId;
-    private final UUID customerId;
+    // ownerId can be customerId or tajerId depending on the wallet type
+    private final UUID ownerId;
     private final String walletNumber;
     private final CurrencyCode currencyCode;
     private final WalletType walletType;
@@ -21,7 +22,7 @@ public class WalletCreatedEvent extends BaseEvent {
     // Used by Wallet Service when creating a new event
     public WalletCreatedEvent(
             UUID walletId,
-            UUID customerId,
+            UUID ownerId,
             String walletNumber,
             CurrencyCode currencyCode,
             WalletType walletType
@@ -29,7 +30,7 @@ public class WalletCreatedEvent extends BaseEvent {
         super();
 
         this.walletId = walletId;
-        this.customerId = customerId;
+        this.ownerId = ownerId;
         this.walletNumber = walletNumber;
         this.currencyCode = currencyCode;
         this.walletType = walletType;
@@ -41,7 +42,7 @@ public class WalletCreatedEvent extends BaseEvent {
             @JsonProperty("eventId") UUID eventId,
             @JsonProperty("createdAt") LocalDateTime createdAt,
             @JsonProperty("walletId") UUID walletId,
-            @JsonProperty("customerId") UUID customerId,
+            @JsonProperty("ownerId") UUID ownerId,
             @JsonProperty("walletNumber") String walletNumber,
             @JsonProperty("currencyCode") CurrencyCode currencyCode,
             @JsonProperty("walletType") WalletType walletType
@@ -49,7 +50,7 @@ public class WalletCreatedEvent extends BaseEvent {
         super(eventId, createdAt);
 
         this.walletId = walletId;
-        this.customerId = customerId;
+        this.ownerId = ownerId;
         this.walletNumber = walletNumber;
         this.currencyCode = currencyCode;
         this.walletType = walletType;

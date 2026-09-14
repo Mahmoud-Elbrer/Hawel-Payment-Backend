@@ -30,7 +30,7 @@ public class WalletController {
     @PostMapping
     public ResponseEntity<WalletResponse> createWallet(@Valid @RequestBody CreateWalletRequest request) {
 
-        log.info("Received request to create wallet for customerId={}", request.getCustomerId());
+        log.info("Received request to create wallet for ownerId={}", request.getOwnerId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(walletService.createWallet(request));
     }
@@ -54,8 +54,6 @@ public class WalletController {
     @GetMapping("/number/{walletNumber}")
     public ResponseEntity<WalletResponse> getWalletByNumber(@PathVariable String walletNumber) {
 
-
-
         log.info("Received request to get wallet by number={}", walletNumber);
 
         return ResponseEntity.ok(walletService.getWalletByNumber(walletNumber));
@@ -65,10 +63,10 @@ public class WalletController {
     /**
      * Get all wallets for customer
      */
-    @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<WalletResponse>> getCustomerWallets(@PathVariable UUID customerId) {
+    @GetMapping("/customer/{ownerId}")
+    public ResponseEntity<List<WalletResponse>> getOwnerWallets(@PathVariable UUID ownerId) {
 
-        return ResponseEntity.ok(walletService.getCustomerWallets(customerId));
+        return ResponseEntity.ok(walletService.getOwnerWallets(ownerId));
     }
 
 

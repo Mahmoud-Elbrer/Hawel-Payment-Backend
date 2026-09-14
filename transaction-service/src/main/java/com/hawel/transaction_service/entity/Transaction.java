@@ -50,6 +50,10 @@ public class Transaction {
     @Column(name = "status", nullable = false, length = 30)
     private TransactionStatus status;
 
+    // we add this because when transaction still in progress that ReconciliationScheduler will work to check transaction id
+    @Column(name = "processing_at")
+    private Instant processingAt;
+
     @Column(name = "sender_wallet_id")
     private UUID senderWalletId;
 

@@ -1,2 +1,8 @@
-package com.hawel.payment_service.exception;public class PaymentExpiredException {
+package com.hawel.payment_service.exception;
+
+public class PaymentExpiredException extends RuntimeException {
+
+    public PaymentExpiredException(String message) {
+        super(message);
+    }
 }

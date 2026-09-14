@@ -1,4 +1,4 @@
-package com.hawel.payment_service.exception;
+package com.hawel.card_service.exception;
 
 
 import jakarta.persistence.OptimisticLockException;
@@ -18,16 +18,16 @@ import org.springframework.web.bind.annotation.*;
 public class GlobalExceptionHandler {
 
 
-    @ExceptionHandler(InvalidPaymentStateException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidPaymentState(InvalidPaymentStateException ex) {
+    @ExceptionHandler(InvalidCardStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPaymentState(InvalidCardStateException ex) {
 
         log.warn("Invalid payment state | {}", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("INVALID_PAYMENT_STATE", ex.getMessage()));
     }
 
-    @ExceptionHandler(PaymentNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handlePaymentNotFound(PaymentNotFoundException ex) {
+    @ExceptionHandler(CardNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentNotFound(CardNotFoundException ex) {
 
         log.warn("Payment not found | {}", ex.getMessage());
 
@@ -41,6 +41,19 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+
+        log.warn("Invalid argument | {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(
+                        "INVALID_ARGUMENT",
+                        ex.getMessage()
+                ));
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
@@ -49,16 +62,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("SYSTEM_ERROR", "Unexpected error"));
     }
-
-    @ExceptionHandler(PaymentExpiredException.class)
-    public ResponseEntity<ErrorResponse> handlePaymentExpired(PaymentExpiredException ex) {
-
-        log.warn("Payment expired | {}", ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("PAYMENT_EXPIRED",  ex.getMessage()));
-    }
-
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {

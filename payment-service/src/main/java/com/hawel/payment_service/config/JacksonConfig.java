@@ -1,4 +1,4 @@
-package com.hawel.transaction_service.config;
+package com.hawel.payment_service.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

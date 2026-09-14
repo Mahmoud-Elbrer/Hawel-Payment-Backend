@@ -18,7 +18,7 @@ public class WalletEventConsumer {
     @KafkaListener(topics = KafkaTopics.WALLET_CREATED, groupId = "ledger-service")
     public void handleWalletCreated(WalletCreatedEvent event) {
 
-        log.info("Received WalletCreatedEvent walletId={}, customerId={}", event.getWalletId(), event.getCustomerId());
+        log.info("Received WalletCreatedEvent walletId={}, ownerId={}", event.getWalletId(), event.getOwnerId());
 
         accountService.createWalletAccount(event);
     }

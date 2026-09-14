@@ -4,6 +4,7 @@ public enum WalletType {
 
     PERSONAL,
 
-    TAJER ,
-    MERCHANT
+    BUSINESS,
+
+    SYSTEM
 }

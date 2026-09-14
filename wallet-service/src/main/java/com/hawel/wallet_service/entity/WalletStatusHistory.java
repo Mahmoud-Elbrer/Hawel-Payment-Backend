@@ -1,6 +1,6 @@
 package com.hawel.wallet_service.entity;
 
-import com.hawel.wallet_service.enums.WalletStatus;
+import com.hawel.common_service.enums.WalletStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -4,7 +4,7 @@ import com.hawel.common_service.dto.ledger.*;
 import com.hawel.common_service.dto.wallet.WalletTransferValidationRequest;
 import com.hawel.common_service.dto.wallet.WalletTransferValidationResponse;
 import com.hawel.common_service.enums.JournalStatus;
-import com.hawel.transaction_service.client.wallet.LedgerClient;
+import com.hawel.transaction_service.client.ledger.LedgerClient;
 import com.hawel.transaction_service.client.wallet.WalletClient;
 import com.hawel.transaction_service.dto.request.TransferTransactionRequest;
 import com.hawel.transaction_service.dto.response.TransactionResponse;
@@ -13,6 +13,7 @@ import com.hawel.transaction_service.enums.TransactionStatus;
 import com.hawel.transaction_service.enums.TransactionType;
 import com.hawel.transaction_service.exception.IdempotencyConflictException;
 import com.hawel.transaction_service.exception.TransactionException;
+import com.hawel.transaction_service.mapper.TransactionMapper;
 import com.hawel.transaction_service.repository.IdempotencyKeyRepository;
 import com.hawel.transaction_service.repository.TransactionRepository;
 import com.hawel.transaction_service.service.RequestHashService;
@@ -21,7 +22,9 @@ import com.hawel.transaction_service.service.TransactionService;
 import com.hawel.transaction_service.service.TransactionStateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -47,6 +50,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionStateService transactionStateService;
 
     private final TransactionCreationService transactionCreationService;
+
+    private final TransactionMapper transactionMapper;
 
     @Override
     public TransactionResponse transfer(TransferTransactionRequest request, String idempotencyKey) {
@@ -77,7 +82,7 @@ public class TransactionServiceImpl implements TransactionService {
                     existing.getStatus()
             );
 
-            return mapToResponse(existing);
+            return transactionMapper.toResponse(existing);
         }
 
         log.debug("No existing transaction found for idempotency key | idempotencyKey={}", idempotencyKey);
@@ -154,7 +159,7 @@ public class TransactionServiceImpl implements TransactionService {
                     transaction.getReferenceNumber()
             );
 
-            return mapToResponse(transaction);
+            return transactionMapper.toResponse(transaction);
         }
 
 
@@ -173,6 +178,7 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.getReferenceNumber()
         );
 
+
         ResolveAccountsResponse accounts = resolveAccounts(transaction);
 
         log.info(
@@ -180,7 +186,6 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.getId(),
                 transaction.getReferenceNumber()
         );
-
 
 
         // 8. Process transaction with ledger service
@@ -202,7 +207,7 @@ public class TransactionServiceImpl implements TransactionService {
                     transaction.getReferenceNumber()
             );
 
-            return mapToResponse(transaction);
+            return transactionMapper.toResponse(transaction);
         }
 
 
@@ -231,7 +236,7 @@ public class TransactionServiceImpl implements TransactionService {
                     transaction.getStatus()
             );
 
-            return mapToResponse(transaction);
+            return transactionMapper.toResponse(transaction);
         }
 
         // Ledger failed . Change transaction status to FAILED and return response.
@@ -258,42 +263,106 @@ public class TransactionServiceImpl implements TransactionService {
                 transaction.getStatus()
         );
 
-        // Todo : Publidh Event
+        // Todo : Publish Event
 
-        return mapToResponse(transaction);
+        return transactionMapper.toResponse(transaction);
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TransactionResponse getTransaction(UUID transactionId) {
+
+        log.info("Getting transaction | transactionId={}", transactionId);
+
+        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> {
+
+                    log.warn("Transaction not found | transactionId={}", transactionId);
+
+                    return new ResourceNotFoundException(
+                            "Transaction not found: " + transactionId
+                    );
+                }
+        );
+
+        log.debug(
+                "Transaction found | transactionId={} | referenceNumber={} | status={} | amount={} | currency={}",
+                transaction.getId(),
+                transaction.getReferenceNumber(),
+                transaction.getStatus(),
+                transaction.getAmount(),
+                transaction.getCurrencyCode()
+        );
+
+        TransactionResponse response = transactionMapper.toResponse(transaction);
+
+        log.info(
+                "Transaction retrieved successfully | transactionId={} | referenceNumber={} | status={}",
+                transaction.getId(),
+                transaction.getReferenceNumber(),
+                transaction.getStatus()
+        );
+
+        return response;
     }
 
 
     private Transaction checkIdempotency(String idempotencyKey, String requestHash) {
 
+        log.debug("Checking idempotency key | idempotencyKey={}", idempotencyKey);
+
         return idempotencyKeyRepository.findByIdempotencyKey(idempotencyKey)
                 .map(key -> {
 
+                    log.info("Existing idempotency key found | idempotencyKey={} | transactionId={}", idempotencyKey, key.getTransactionId());
+
                     if (!key.getRequestHash().equals(requestHash)) {
+
+                        log.warn("Idempotency conflict detected | idempotencyKey={} | transactionId={}", idempotencyKey, key.getTransactionId());
 
                         throw new IdempotencyConflictException("Idempotency key was already used with a different request");
                     }
 
-                    return transactionRepository.findById(key.getTransactionId()).orElseThrow(() ->
-                            new TransactionException(
-                                    "Transaction associated with idempotency key not found"
-                            )
-                    );
+                    log.debug("Idempotency request hash matched | idempotencyKey={} | transactionId={}", idempotencyKey, key.getTransactionId());
+
+                    Transaction transaction = transactionRepository
+                            .findById(key.getTransactionId())
+                            .orElseThrow(() -> {
+
+                                log.error("Transaction associated with idempotency key not found | idempotencyKey={} | transactionId={}", idempotencyKey, key.getTransactionId());
+
+                                return new TransactionException("Transaction associated with idempotency key not found");
+                            });
+
+                    log.info("Idempotent transaction found | idempotencyKey={} | transactionId={} | status={}", idempotencyKey, transaction.getId(), transaction.getStatus());
+
+                    return transaction;
+
 
                 })
-                .orElse(null);
+                .orElseGet(() -> {
+
+                    log.debug("No existing idempotency key found | idempotencyKey={}", idempotencyKey);
+
+                    return null;
+                });
 
     }
 
     private void validateTransfer(TransferTransactionRequest request) {
 
+        log.debug("Validating transfer request | senderWalletId={} | receiverWalletId={} | amount={} | currency={}", request.getSenderWalletId(), request.getReceiverWalletId(), request.getAmount(), request.getCurrencyCode());
+
         if (request.getSenderWalletId().equals(request.getReceiverWalletId())) {
+
+            log.warn("Transfer validation failed | sender and receiver wallets are the same | walletId={}", request.getSenderWalletId());
 
             throw new TransactionException("Sender and receiver wallet IDs cannot be the same");
         }
 
         if (request.getAmount().signum() <= 0) {
+
+            log.warn("Transfer validation failed | amount must be greater than zero | amount={}", request.getAmount());
 
             throw new TransactionException("Amount must be greater than zero");
         }
@@ -302,8 +371,21 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Transaction buildTransaction(TransferTransactionRequest request) {
 
-        return Transaction.builder()
-                .referenceNumber(transactionReferenceGenerator.generate())
+        log.debug(
+                "Building transaction | senderWalletId={} | receiverWalletId={} | amount={} | currency={}",
+                request.getSenderWalletId(),
+                request.getReceiverWalletId(),
+                request.getAmount(),
+                request.getCurrencyCode()
+        );
+
+        String referenceNumber = transactionReferenceGenerator.generate();
+
+        log.debug("Transaction reference generated | referenceNumber={}", referenceNumber);
+
+
+        Transaction transaction = Transaction.builder()
+                .referenceNumber(referenceNumber)
                 .transactionType(TransactionType.TRANSFER)
                 .amount(request.getAmount())
                 .currencyCode(request.getCurrencyCode())
@@ -312,10 +394,20 @@ public class TransactionServiceImpl implements TransactionService {
                 .receiverWalletId(request.getReceiverWalletId())
                 .build();
 
+        log.debug("Transaction object built | referenceNumber={} | type={} | status={}", transaction.getReferenceNumber(), transaction.getTransactionType(), transaction.getStatus());
+
+        return transaction;
+
     }
 
 
     private WalletTransferValidationResponse validateWallets(Transaction transaction) {
+
+        log.info(
+                "Starting wallet validation | transactionId={} | referenceNumber={}",
+                transaction.getId(),
+                transaction.getReferenceNumber()
+        );
 
         WalletTransferValidationRequest request =
                 new WalletTransferValidationRequest(
@@ -325,6 +417,22 @@ public class TransactionServiceImpl implements TransactionService {
                         transaction.getCurrencyCode()
                 );
 
+        log.debug(
+                "Wallet validation request prepared | transactionId={} | senderWalletId={} | receiverWalletId={} | amount={} | currency={}",
+                transaction.getId(),
+                request.getSenderWalletId(),
+                request.getReceiverWalletId(),
+                request.getAmount(),
+                request.getCurrencyCode()
+        );
+
+        log.debug(
+                "Calling wallet-service for transfer validation | transactionId={} | senderWalletId={} | receiverWalletId={}",
+                transaction.getId(),
+                request.getSenderWalletId(),
+                request.getReceiverWalletId()
+        );
+
         // Call wallet service to validate wallets
         return walletClient.validateTransfer(request);
 
@@ -332,6 +440,13 @@ public class TransactionServiceImpl implements TransactionService {
 
     private JournalResponse executeLedgerTransfer(Transaction transaction, ResolveAccountsResponse accounts) {
 
+        log.debug(
+                "Resolving ledger account IDs | transactionId={} | referenceNumber={} | senderWalletId={} | receiverWalletId={}",
+                transaction.getId(),
+                transaction.getReferenceNumber(),
+                transaction.getSenderWalletId(),
+                transaction.getReceiverWalletId()
+        );
 
         UUID senderAccountId =
                 accounts.getAccounts()
@@ -339,7 +454,25 @@ public class TransactionServiceImpl implements TransactionService {
                         .filter(account -> account.getWalletId().equals(transaction.getSenderWalletId()))
                         .map(AccountReferenceResponse::getAccountId)
                         .findFirst()
-                        .orElseThrow(() -> new TransactionException("Sender ledger account not found"));
+                        .orElseThrow(() -> {
+                            log.error(
+                                    "Sender ledger account not found | transactionId={} | referenceNumber={} | senderWalletId={}",
+                                    transaction.getId(),
+                                    transaction.getReferenceNumber(),
+                                    transaction.getSenderWalletId()
+                            );
+
+                            return new TransactionException(
+                                    "Sender ledger account not found"
+                            );
+                        });
+
+        log.debug(
+                "Sender ledger account resolved | transactionId={} | senderWalletId={} | senderAccountId={}",
+                transaction.getId(),
+                transaction.getSenderWalletId(),
+                senderAccountId
+        );
 
         UUID receiverAccountId =
                 accounts.getAccounts()
@@ -347,7 +480,25 @@ public class TransactionServiceImpl implements TransactionService {
                         .filter(account -> account.getWalletId().equals(transaction.getReceiverWalletId()))
                         .map(AccountReferenceResponse::getAccountId)
                         .findFirst()
-                        .orElseThrow(() -> new TransactionException("Receiver ledger account not found"));
+                        .orElseThrow(() -> {
+                            log.error(
+                                    "Receiver ledger account not found | transactionId={} | referenceNumber={} | receiverWalletId={}",
+                                    transaction.getId(),
+                                    transaction.getReferenceNumber(),
+                                    transaction.getReceiverWalletId()
+                            );
+
+                            return new TransactionException(
+                                    "Receiver ledger account not found"
+                            );
+                        });
+
+        log.debug(
+                "Receiver ledger account resolved | transactionId={} | receiverWalletId={} | receiverAccountId={}",
+                transaction.getId(),
+                transaction.getReceiverWalletId(),
+                receiverAccountId
+        );
 
         log.info(
                 "Executing ledger transfer | transactionId={} | referenceNumber={} | fromAccountId={} | toAccountId={} | amount={} | currency={}",
@@ -370,7 +521,24 @@ public class TransactionServiceImpl implements TransactionService {
                         .description("Wallet transfer")
                         .build();
 
+        log.debug(
+                "Ledger transfer request built | transactionId={} | referenceNumber={} | fromAccountId={} | toAccountId={} | amount={} | currency={}",
+                transaction.getId(),
+                transaction.getReferenceNumber(),
+                senderAccountId,
+                receiverAccountId,
+                transaction.getAmount(),
+                transaction.getCurrencyCode()
+        );
+
         try {
+
+            log.info(
+                    "Calling ledger-service transfer API | transactionId={} | referenceNumber={}",
+                    transaction.getId(),
+                    transaction.getReferenceNumber()
+            );
+
 
             return ledgerClient.transfer(ledgerRequest);
 
@@ -397,6 +565,14 @@ public class TransactionServiceImpl implements TransactionService {
 
     private ResolveAccountsResponse resolveAccounts(Transaction transaction) {
 
+        log.debug(
+                "Preparing account resolution request | transactionId={} | referenceNumber={} | senderWalletId={} | receiverWalletId={}",
+                transaction.getId(),
+                transaction.getReferenceNumber(),
+                transaction.getSenderWalletId(),
+                transaction.getReceiverWalletId()
+        );
+
         ResolveAccountsRequest request =
                 new ResolveAccountsRequest(
                         Arrays.asList(
@@ -405,13 +581,14 @@ public class TransactionServiceImpl implements TransactionService {
                         )
                 );
 
+        log.debug(
+                "Calling ledger-service to resolve accounts | transactionId={} | referenceNumber={}",
+                transaction.getId(),
+                transaction.getReferenceNumber()
+        );
+
+
         return ledgerClient.resolveAccounts(request);
-    }
-
-
-    private TransactionResponse mapToResponse(Transaction transaction) {
-
-        return new TransactionResponse(transaction.getId(), transaction.getReferenceNumber(), transaction.getTransactionType(), transaction.getAmount(), transaction.getCurrencyCode(), transaction.getStatus(), transaction.getSenderWalletId(), transaction.getReceiverWalletId(), transaction.getCreatedAt(), transaction.getCompletedAt());
     }
 
 

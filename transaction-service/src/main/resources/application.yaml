@@ -61,6 +61,20 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+# this for time out config
+  cloud:
+    openfeign:
+      client:
+        config:
+          ledger-service:
+            connectTimeout: 3000  # Connect timeout = 3 second
+            readTimeout: 5000     # Read timeout = 5 second
+
+
+transaction:
+  reconciliation:
+    timeout-minutes: 1 # in test will make 1 mints and prod 10 mints
+
 services:
   wallet:
     url: http://localhost:8082

@@ -15,6 +15,15 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, UUID
     // and avoid duplicate journal entries for the same transaction it Idempotency
     boolean existsByReference(String reference);
 
+
+    /**
+     * Find journal entry by Transaction ID.
+     *
+     * Used by Transaction Service during reconciliation
+     * when a transaction is stuck in PROCESSING.
+     */
     Optional<JournalEntry> findByTransactionId(UUID transactionId);
+
+
 
 }

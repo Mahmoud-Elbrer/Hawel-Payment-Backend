@@ -1,2 +1,8 @@
-package com.hawel.payment_service.exception;public class InvalidPaymentStateException {
+package com.hawel.payment_service.exception;
+
+public class InvalidPaymentStateException extends RuntimeException {
+
+    public InvalidPaymentStateException(String message) {
+        super(message);
+    }
 }

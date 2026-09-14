@@ -1,5 +1,6 @@
 package com.hawel.identity_service.controller;
 
+import com.hawel.identity_service.constants.UserType;
 import com.hawel.identity_service.dto.request.RefreshTokenRequest;
 import com.hawel.identity_service.dto.request.SendOtpRequest;
 import com.hawel.identity_service.dto.request.VerifyOtpRequest;
@@ -52,7 +53,7 @@ public class AuthController {
         return ResponseEntity.ok(IdentityAuthResponse.success("OTP sent successfully."));
     }
 
-    @PostMapping("/verify-otp")
+    @PostMapping("/customer/verify-otp")
     @Operation(
             summary = "Verify OTP",
             description = "Verify the OTP and authenticate the customer. If the customer does not exist, a new account will be created automatically."
@@ -62,21 +63,38 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Invalid or expired OTP"),
             @ApiResponse(responseCode = "401", description = "OTP verification failed")
     })
-    public ResponseEntity<IdentityAuthResponse<AuthResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+    public ResponseEntity<IdentityAuthResponse<AuthResponse>> verifyCustomerOtp(@Valid @RequestBody VerifyOtpRequest request) {
 
         log.info("Verifying OTP for phoneNumber={}", request.getPhoneNumber());
 
-        AuthResponse response = authService.verifyOtp(request);
+        AuthResponse response = authService.verifyOtp(request , UserType.CUSTOMER);
 
         log.info("Customer authenticated successfully. userId={}", response.getUserId());
 
        // return ResponseEntity.ok(IdentityAuthResponse.success("Authentication successful.", response));
-        return ResponseEntity.ok(
-                IdentityAuthResponse.success(
-                        "Authentication successful.",
-                        response
-                )
-        );
+        return ResponseEntity.ok(IdentityAuthResponse.success("Customer authenticated successfully.", response));
+    }
+
+    @PostMapping("/tajer/verify-otp")
+    @Operation(
+            summary = "Verify OTP",
+            description = "Verify the OTP and authenticate the tajer. If the tajer does not exist, a new account will be created automatically."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Authentication successful"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired OTP"),
+            @ApiResponse(responseCode = "401", description = "OTP verification failed")
+    })
+    public ResponseEntity<IdentityAuthResponse<AuthResponse>> verifyTajerOtp(@Valid @RequestBody VerifyOtpRequest request) {
+
+        log.info("Verifying OTP for phoneNumber={}", request.getPhoneNumber());
+
+        AuthResponse response = authService.verifyOtp(request , UserType.Tajer);
+
+        log.info("Tajer authenticated successfully. userId={}", response.getUserId());
+
+        // return ResponseEntity.ok(IdentityAuthResponse.success("Authentication successful.", response));
+        return ResponseEntity.ok(IdentityAuthResponse.success("Tajer authenticated successfully."));
     }
 
     @PostMapping("/refresh-token")

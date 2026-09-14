@@ -6,7 +6,7 @@ INSERT IGNORE INTO accounts (
     owner_id,
     owner_type,
     account_type,
-    currency,
+    currency_code,
     status,
     system_code,
     created_at,

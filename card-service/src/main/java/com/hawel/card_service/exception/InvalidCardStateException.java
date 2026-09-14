@@ -1,4 +1,4 @@
-package com.hawel.payment_service.exception;
+package com.hawel.card_service.exception;
 
 public class InvalidCardStateException extends RuntimeException {
 

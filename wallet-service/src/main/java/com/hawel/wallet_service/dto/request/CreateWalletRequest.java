@@ -16,8 +16,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateWalletRequest {
 
-        @NotNull(message = "Customer ID is required")
-        private UUID customerId;
+        @NotNull(message = "Owner ID is required")
+        // ownerId it can be a tajerId or customerId or systemId depending on the ownerType
+        private UUID ownerId;
 
         @NotNull(message = "CurrencyCode is required")
         private CurrencyCode currencyCode;

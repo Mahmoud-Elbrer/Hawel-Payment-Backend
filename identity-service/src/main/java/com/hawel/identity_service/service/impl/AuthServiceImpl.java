@@ -2,6 +2,7 @@ package com.hawel.identity_service.service.impl;
 
 import com.hawel.identity_service.constants.OtpChannel;
 import com.hawel.identity_service.constants.TokenType;
+import com.hawel.identity_service.constants.UserType;
 import com.hawel.identity_service.dto.request.DeviceRequest;
 import com.hawel.identity_service.dto.request.RefreshTokenRequest;
 import com.hawel.identity_service.dto.request.SendOtpRequest;
@@ -95,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponse verifyOtp(VerifyOtpRequest request) {
+    public AuthResponse verifyOtp(VerifyOtpRequest request  , UserType userType) {
 
         log.info("Verifying OTP for phone number: {}", request.getPhoneNumber());
 
@@ -105,13 +106,12 @@ public class AuthServiceImpl implements AuthService {
         log.info("OTP verified successfully for phone number: {}", request.getPhoneNumber());
 
         // 2- Find or create the user
-        User user = userService.findOrCreateCustomer(request);
+        User user = userService.findOrCreateUser(request , userType);
 
         log.info("User found or created successfully. userId={}", user.getId());
 
         // 3- Register the device
-        DeviceRequest deviceRequest =
-                DeviceRequest.builder()
+        DeviceRequest deviceRequest = DeviceRequest.builder()
                         .deviceUuid(request.getDeviceUuid())
                         .deviceName(request.getDeviceName())
                         .deviceModel(request.getDeviceModel())
@@ -126,12 +126,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("Device registered successfully. deviceId={}", device.getId());
 
         // 4 - Create a session for the user and device
-        Session session = sessionService.create(
-                user,
-                device,
-                request.getIpAddress(),
-                request.getUserAgent()
-        );
+        Session session = sessionService.create(user, device, request.getIpAddress(), request.getUserAgent());
 
         log.info("Session created successfully. sessionId={}", session.getId());
 

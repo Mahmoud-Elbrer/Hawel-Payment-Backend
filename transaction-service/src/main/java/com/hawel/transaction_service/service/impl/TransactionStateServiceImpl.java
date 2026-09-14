@@ -7,6 +7,7 @@ import com.hawel.transaction_service.repository.TransactionRepository;
 import com.hawel.transaction_service.repository.TransactionStatusHistoryRepository;
 import com.hawel.transaction_service.service.TransactionStateService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionStateServiceImpl implements TransactionStateService {
 
     private final TransactionRepository transactionRepository;
@@ -40,13 +42,20 @@ public class TransactionStateServiceImpl implements TransactionStateService {
 
         transaction.setStatus(newStatus);
 
+        if (newStatus == TransactionStatus.PROCESSING && oldStatus != TransactionStatus.PROCESSING) {
+
+            // here will save time to start ReconciliationScheduler after like 10 minus
+            transaction.setProcessingAt(Instant.now());
+
+            log.info("Transaction entered PROCESSING: transactionId={}, processingAt={}", transaction.getId(), transaction.getProcessingAt());
+        }
+
         if (newStatus == TransactionStatus.SUCCESS || newStatus == TransactionStatus.REFUNDED || newStatus == TransactionStatus.REVERSED) {
 
             transaction.setCompletedAt(Instant.now());
         }
 
-        Transaction savedTransaction =
-                transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
         saveHistory(savedTransaction, oldStatus, newStatus, reason);
 

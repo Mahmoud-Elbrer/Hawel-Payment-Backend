@@ -21,7 +21,7 @@ public interface WalletService {
 
     WalletResponse getWalletByNumber(String walletNumber);
 
-    List<WalletResponse> getCustomerWallets(UUID customerId);
+    List<WalletResponse> getOwnerWallets(UUID ownerId);
 
     WalletResponse activateWallet(UUID walletId);
 

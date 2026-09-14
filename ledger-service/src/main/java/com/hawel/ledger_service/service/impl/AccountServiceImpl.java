@@ -27,17 +27,41 @@ public class AccountServiceImpl implements AccountService {
     public Account createWalletAccount(WalletCreatedEvent event) {
 
         // Idempotency
+        // OwnerType.WALLET can be for Customer or Tajer, so ledger account don't need to know the owner type, it just needs to know the wallet id and wallet type.
         return accountRepository.findByOwnerIdAndOwnerType(event.getWalletId(), OwnerType.WALLET).orElseGet(() -> createAccount(event));
     }
 
     private Account createAccount(WalletCreatedEvent event) {
 
+        // Resolve the AccountType based on the WalletType from the event.
         AccountType accountType = resolveAccountType(event.getWalletType().name());
+
+
+        /*
+         * Difference between OwnerType and AccountType here .ownerType(OwnerType.WALLET) and .accountType(accountType) :
+         *
+         * OwnerType identifies the entity that this account belongs to within
+         * the Ledger system. In this case, the account is linked to a Wallet,
+         * so we use OwnerType.WALLET regardless of whether the wallet belongs
+         * to a Customer or a Tajer.
+         *
+         * AccountType identifies the financial or business type of the account.
+         * It is determined based on the WalletType received from the Wallet Service.
+         *
+         * Example:
+         * - Customer Wallet → OwnerType = WALLET, AccountType = CUSTOMER
+         * - Tajer Wallet    → OwnerType = WALLET, AccountType = TAJER
+         *
+         * This approach keeps the Ledger Service independent from Customer or Tajer
+         * domain details, treating the Wallet as the direct owner of the ledger account.
+         */
 
         Account account = Account.builder()
                 .accountNumber(generateAccountNumber())
                 .ownerId(event.getWalletId())
-                .ownerType(OwnerType.WALLET)
+                // OwnerType = the entity this account belongs to (Wallet).
+                .ownerType(OwnerType.WALLET) // OwnerType.WALLET can be for Customer or Tajer, so ledger account don't need to know the owner type, it just needs to know the wallet id and wallet type.
+                // AccountType = the financial type of the account (Customer or Tajer).
                 .accountType(accountType)
                 .currencyCode(event.getCurrencyCode())
                 .status(AccountStatus.ACTIVE)
@@ -60,13 +84,19 @@ public class AccountServiceImpl implements AccountService {
 
         switch (walletType) {
 
-            case "PERSONAL": return AccountType.CUSTOMER_WALLET;
+            case "PERSONAL":
+                return AccountType.CUSTOMER;
 
-            case "TAJER": return AccountType.TAJER;
+            case "BUSINESS":
+                return AccountType.TAJER;
 
-            case "MERCHANT": return AccountType.MERCHANT;
+//            case "MERCHANT":
+//                return AccountType.MERCHANT;
 
-            default: throw new IllegalArgumentException("Unsupported wallet type: " + walletType);
+            // TODO : Add more wallet types here as needed. For example, if you have a MERCHANT wallet type, you can add it like this:
+
+            default:
+                throw new IllegalArgumentException("Unsupported wallet type: " + walletType);
         }
     }
 

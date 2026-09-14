@@ -1,2 +1,5 @@
-package com.hawel.card_service.enums;public class CardType {
+package com.hawel.card_service.enums;
+
+public enum CardType {
+    CUSTOMER
 }

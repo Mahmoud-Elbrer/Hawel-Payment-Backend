@@ -1,8 +1,8 @@
 package com.hawel.wallet_service.entity;
 
 import com.hawel.common_service.enums.CurrencyCode;
+import com.hawel.common_service.enums.WalletStatus;
 import com.hawel.common_service.enums.WalletType;
-import com.hawel.wallet_service.enums.WalletStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -20,18 +20,16 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Wallet {
 
-
     @Id
     @GeneratedValue
     @JdbcTypeCode(SqlTypes.BINARY)
     private UUID id;
 
-
     @Column(unique = true , nullable = false ,  length = 20)
     private String walletNumber;
 
-
-    private UUID customerId;
+    // ownerId it can be a tajerId or customerId or systemId depending on the ownerType
+    private UUID ownerId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "currency_code", nullable = false, length = 10)

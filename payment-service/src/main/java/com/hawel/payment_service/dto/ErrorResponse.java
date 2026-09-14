@@ -1,4 +1,4 @@
-package com.hawel.transaction_service.dto;
+package com.hawel.payment_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

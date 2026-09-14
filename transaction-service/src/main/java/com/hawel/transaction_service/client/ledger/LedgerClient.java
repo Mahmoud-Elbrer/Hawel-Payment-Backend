@@ -1,4 +1,4 @@
-package com.hawel.transaction_service.client.wallet;
+package com.hawel.transaction_service.client.ledger;
 
 import com.hawel.common_service.dto.ledger.JournalResponse;
 import com.hawel.common_service.dto.ledger.ResolveAccountsRequest;

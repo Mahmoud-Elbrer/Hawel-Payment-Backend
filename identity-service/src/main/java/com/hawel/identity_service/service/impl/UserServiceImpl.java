@@ -25,8 +25,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public Optional<User> findByPhoneNumber(String phoneNumber) {
-        return userRepository.findByPhoneNumber(phoneNumber);
+    // TODO : change to findByPhoneNumberAndUserType( String phoneNumber, UserType userType )
+    public Optional<User> findByPhoneNumberAndUserType(String phoneNumber, UserType userType) {
+        return userRepository.findByPhoneNumberAndUserType(phoneNumber, userType);
     }
 
     @Override
@@ -44,15 +45,15 @@ public class UserServiceImpl implements UserService {
     // If the user does not exist, it creates a new customer user with the provided phone number and saves it to the database.
     // we use this for otp login, if the user is not found, we create a new user with the phone number and return it.
     @Override
-    public User findOrCreateCustomer(VerifyOtpRequest request) {
-        return userRepository.findByPhoneNumber(request.getPhoneNumber())
+    public User findOrCreateUser(VerifyOtpRequest request, UserType userType) {
+        return userRepository.findByPhoneNumberAndUserType(request.getPhoneNumber(), userType)
                 .orElseGet(() -> {
 
-                    log.info("Creating new customer. phone={}", request.getPhoneNumber());
+                    log.info("Creating new user. phone={}, userType={}", request.getPhoneNumber(), userType);
 
                     User user = new User();
 
-                    user.setUserType(UserType.CUSTOMER);
+                    user.setUserType(userType);
                     user.setPhoneNumber(request.getPhoneNumber());
                     user.setPhoneVerified(true);
                     user.setStatus(UserStatus.ACTIVE);
